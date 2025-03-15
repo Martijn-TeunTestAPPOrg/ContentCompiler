@@ -11,7 +11,9 @@ def generateMarkdownTable(headers, rows):
 def createFileReportRow(status, filePath, srcDir, taxonomie, tags, errors):
     return {
         "status": status,
+        # .stem only takes the last part of the filepath, being the file name
         "file": filePath.stem,
+        # This only takes the file path from the srcDir onwards
         "path": str(filePath.relative_to(srcDir)),
         "taxonomie": '<br>'.join(taxonomie) if taxonomie else "N/A",
         "tags": '<br>'.join(tags) if tags else "N/A",
@@ -36,7 +38,9 @@ def formatFileReportTable(fileReport):
 def createImageTableTow(status, filePath, srcDir, error):
     return {
         "status" : status,
+        # .stem only takes the last part of the filepath, being the file name
         "image": filePath.stem,
+        # This only takes the file path from the srcDir onwards
         "path": str(filePath.relative_to(srcDir)),
         "error": error,
     }

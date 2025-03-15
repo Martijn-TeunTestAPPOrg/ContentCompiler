@@ -1,5 +1,5 @@
 from report.table import generateMarkdownTable
-from config import taxcoReport, contentReport
+from config import taxcoReport, contentReport, fileTypeMapping
 from config import LT, DT, OI, PI, FAIL_CIRCLE_ICON, SUCCESS_ICON, NOT_NECESSARY_ICON
 
 
@@ -7,7 +7,7 @@ from config import LT, DT, OI, PI, FAIL_CIRCLE_ICON, SUCCESS_ICON, NOT_NECESSARY
 def updateProcessReportData(tc1, tc2):
     # Helper function to update the TC2 status for a given index
     def updateProcessReportRow(tc1, tc2, index):
-        # Check if the tc2 matches the index and the current status is not NOT_NECESSARY_ICON
+        # Check if the tc2 (HBO-i niveau) matches the index and the current status (tc2) is not NOT_NECESSARY_ICON
         if tc2 == str(index + 1) and taxcoReport[tc1]['TC2'][index] != NOT_NECESSARY_ICON:
             # Update the status to 'v' (success)
             taxcoReport[tc1]['TC2'][index] = 'v'
@@ -18,24 +18,28 @@ def updateProcessReportData(tc1, tc2):
 
 # Update the content list data with the new values.
 def updateSubjectReportData(tc1, tc2, tc3, fileType):
-    # Helper function to update the record with the new values
+    # Helper function to update a subject table row with the right values
     def updateSubjectReportRow(tc1, tc2, tc3, fileType, searchType):
-        fileTypeMapping = {
-            "LT": "Leertaken",
-            "OI": "Ondersteunende-informatie",  
-            "PI": "Procedurele-informatie",     
-            "DT": "Deeltaken"                   
-        }
-
-        # Convert fileType if it exists in the mapping
+        # Get the full name of a 4C/ID component if it exists in the mapping
+        # Searchtype and filetype are supposed to both be 4C/ID components
         fileTypeFull = fileTypeMapping.get(fileType, fileType)
+        # Sets the value of a 4C/ID component for the given tc3 (subject) and tc1 on the three different HBO-i niveaus
+        # This shows if there is content present for the given subject and process + processstep on a certain 4C/ID component (searchType)
         contentReport[tc3][tc1][searchType] = [
             'v' if fileTypeFull == searchType and tc2 == '1' and contentReport[tc3][tc1][searchType][0] != NOT_NECESSARY_ICON else contentReport[tc3][tc1][searchType][0], 
             'v' if fileTypeFull == searchType and tc2 == '2' and contentReport[tc3][tc1][searchType][1] != NOT_NECESSARY_ICON else contentReport[tc3][tc1][searchType][1], 
             'v' if fileTypeFull == searchType and tc2 == '3' and contentReport[tc3][tc1][searchType][2] != NOT_NECESSARY_ICON else contentReport[tc3][tc1][searchType][2]
         ]
 
-    contentReport[tc3][tc1]['TC2'] = ['v' if tc2 == '1' and contentReport[tc3][tc1]['TC2'][0] != NOT_NECESSARY_ICON else contentReport[tc3][tc1]['TC2'][0], 'v' if tc2 == '2' and contentReport[tc3][tc1]['TC2'][1] != NOT_NECESSARY_ICON else contentReport[tc3][tc1]['TC2'][1], 'v' if tc2 == '3' and contentReport[tc3][tc1]['TC2'][2] != NOT_NECESSARY_ICON else contentReport[tc3][tc1]['TC2'][2]]
+     # Sets the value of the tc2 value for the given tc3 (subject) and tc1 on the three different HBO-i niveaus. 
+     # This shows if there is any content present for the given subject and process + processstep
+    contentReport[tc3][tc1]['TC2'] = [
+        'v' if tc2 == '1' and contentReport[tc3][tc1]['TC2'][0] != NOT_NECESSARY_ICON else contentReport[tc3][tc1]['TC2'][0], 
+        'v' if tc2 == '2' and contentReport[tc3][tc1]['TC2'][1] != NOT_NECESSARY_ICON else contentReport[tc3][tc1]['TC2'][1], 
+        'v' if tc2 == '3' and contentReport[tc3][tc1]['TC2'][2] != NOT_NECESSARY_ICON else contentReport[tc3][tc1]['TC2'][2]
+    ]
+
+    # Updates the subject report for the different 4C/ID components
     updateSubjectReportRow(tc1, tc2, tc3, fileType, LT)
     updateSubjectReportRow(tc1, tc2, tc3, fileType, OI)
     updateSubjectReportRow(tc1, tc2, tc3, fileType, PI)
@@ -44,6 +48,7 @@ def updateSubjectReportData(tc1, tc2, tc3, fileType):
 # Generate the report based on the taxonomie report, success, and failed reports.
 def generateTaxcoReport(reportPath):
     with open(reportPath, "w", encoding="utf-8") as f:
+        # This will make sure it won't be visible in the quartz page
         f.write('---\ndraft: true\n---\n')
         
         f.write('## Rapport 1 - Processtappen\n')
@@ -65,22 +70,24 @@ def generateTaxcoReport(reportPath):
         f.write('\n')
         f.write(generateSubjectTable())
 
-# Format the report table for the process table
+# Helper function to get the status icon for a given level
+def getStatus(level):
+    if level == 'v':
+        return SUCCESS_ICON
+    elif level == 'x':
+        return FAIL_CIRCLE_ICON
+    else:
+        return NOT_NECESSARY_ICON
+        
+# Formats the report table for the process table
 def generateProcessTable():
     # Define the headers for the process table
     headers = ["TC1", "Proces", "Processtap", "Niveau 1", "Niveau 2", "Niveau 3"]
     rows = []
 
-    # Helper function to get the status icon for a given level
-    def getStatus(level):
-        if level == 'v' or level == 'g':
-            return SUCCESS_ICON
-        elif level == 'x':
-            return FAIL_CIRCLE_ICON
-        else:
-            return NOT_NECESSARY_ICON
-
     # Loop through the taxco report and generate the table rows
+    # tc is the tc1 
+    # details contains the information connected to the tc1
     for tc, details in taxcoReport.items():
         proces = details.get('Proces', '')
         processtap = details.get('Processtap', '')
@@ -100,28 +107,23 @@ def generateSubjectTable():
     headers = ["TC3", "TC1", "TC2", LT, OI, PI, DT]
     rows = []
 
-    # Helper function to get the status of the value
-    def getStatus(value):
-        if value == 'v' or value == 'g':
-            return SUCCESS_ICON
-        elif value != NOT_NECESSARY_ICON:
-            return FAIL_CIRCLE_ICON
-        else:
-            return NOT_NECESSARY_ICON
-
     # Helper function to get the status for each level
     def getStatusForLevels(levels):
         return ' '.join([getStatus(level) for level in levels])
 
     # Loop through the content report and generate the table
     for tc3, row in contentReport.items():
+        # Per tc3 (subject) look at the tc1 and the following details (others)
         for tc1, other in row.items():
+            # All details are a list of three items. From others, the list with key is pulled with a * 3 for the three different HBO-i niveaus
             tc2 = getStatusForLevels(other.get('TC2', [''] * 3))
             leertaak = getStatusForLevels(other.get(LT, [''] * 3))
             ondersteunende_informatie = getStatusForLevels(other.get(OI, [''] * 3))
             procedurele_informatie = getStatusForLevels(other.get(PI, [''] * 3))
             deeltaak = getStatusForLevels(other.get(DT, [''] * 3))
 
+            # Append the row to the list of rows
             rows.append([tc3, tc1, tc2, leertaak, ondersteunende_informatie, procedurele_informatie, deeltaak])
 
+    # Generate the markdown table using the headers and rows
     return generateMarkdownTable(headers, rows)

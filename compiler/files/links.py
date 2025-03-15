@@ -24,11 +24,11 @@ def updateDynamicLinks(filePath, content, skipValidateDynamicLinks):
         content = content.replace(link, newLink)
         
         # Skip dynamic link check if flag is set
-        # This is used in the PR validation check when only updated the content is being checked
+        # This is used in the PR validation check when only updated the content is being checked and the links will not be checked
         if(skipValidateDynamicLinks):
             continue
 
-        # Check if the dynamic link is valid
+        # Check if the dynamic link is valid and add an error if it is not a valid link
         if not validateDynamicLink(filePath, newLink):
             reportLink = newLink.replace('|', '\|')
             errors.append(f"{ERROR_INVALID_DYNAMIC_LINK} `{reportLink}`")
@@ -53,7 +53,8 @@ def validateDynamicLink(sourceFilePath, link):
 
     # If the link contains a section (anchor), split the link at '#'
     if '#' in cleanedLink:
-        cleanedLink = cleanedLink.split('#')[0]  # Use only the part before '#'
+        # Use only the part before '#'
+        cleanedLink = cleanedLink.split('#')[0]  
 
     # Parse the base name from the cleaned link
     linkParts = cleanedLink.split('|')

@@ -20,13 +20,17 @@ IMAGE_PATTERN = r'!\[\[([^\]]+)\]\]|\!\[([^\]]*)\]\(([^)]+)\)'								# Image re
 VALID_DYNAMIC_LINK_PREFIXES = ['https://', 'http://', 'tags/']								# List of valid dynamic links
 IGNORE_FOLDERS = ["schrijfwijze"] 															# Folders to ignore when parsing the markdown files
 
-VERBOSE = False 																			# Flag to enable verbose output
-
 # 4CID names
 LT = "Leertaken"
 OI = "Ondersteunende-informatie" 
 PI = "Procedurele-informatie"
 DT = "Deeltaken"
+fileTypeMapping = {
+    "LT": "Leertaken",
+    "OI": "Ondersteunende-informatie",  
+    "PI": "Procedurele-informatie",     
+    "DT": "Deeltaken"                   
+}
 
 # Dataset columns numbers
 TC1_COL = 0

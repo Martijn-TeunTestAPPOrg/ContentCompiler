@@ -50,9 +50,9 @@ Deze todo items moeten nog worden afgehandeld.
 
 | Status | Image | Path | Error |
 | --- | --- | --- | --- |
-| 🔨 | OI_test_image_2 | src\OI_test_image_2.png | Afbeelding wordt niet gebruikt |
-| 🔨 | PI_test_image_4 | src\PI_test_image_4.png | Afbeelding wordt niet gebruikt |
-| 🔨 | test_image_1 | src\test_image_1.png | Afbeelding wordt niet gebruikt |
+| 🔨 | OI_test_image_2 | src/OI_test_image_2.png | Afbeelding wordt niet gebruikt |
+| 🔨 | PI_test_image_4 | src/PI_test_image_4.png | Afbeelding wordt niet gebruikt |
+| 🔨 | test_image_1 | src/test_image_1.png | Afbeelding wordt niet gebruikt |
 
 
 ## Genegeerde bestanden

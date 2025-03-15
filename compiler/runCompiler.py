@@ -8,6 +8,8 @@ from report.generateTaxcoReport import generateTaxcoReport
 from report.generateContentReport import generateContentReport
 
 class ContentCompiler:
+    # Sets up skipLinkCheck and logging
+    # The skipLinkCheck when set to true will not check for invalid links in the content
     def __init__(self, skipLinkCheck: bool = False):
         self.skipLinkCheck = skipLinkCheck
         self.setupLogging()
@@ -19,17 +21,29 @@ class ContentCompiler:
             format='%(asctime)s - %(levelname)s - %(message)s'
         )
 
+    # Validates is the path of both the dataset and src directory are present, else it will raise an error
     def validatePaths(self, dataset, src_dir) -> None:
         if not os.path.exists(dataset):
             raise FileNotFoundError(f"Dataset file {dataset} not found.")
         if not os.path.exists(src_dir):
             raise FileNotFoundError(f"Source directory {src_dir} not found.")
 
+    # Will remove the current destination directory if present, and make a new empty directory
     def initializeDestDir(self, dest_dir) -> None:
         if os.path.exists(dest_dir):
             shutil.rmtree(dest_dir)
         os.mkdir(dest_dir)
 
+
+    # This function does the following:
+    #   - sets all the relevant file paths
+    #   - validates the file paths and makes a clean destination directory
+    #   - parses the dataset 
+    #   - populates both reports with the data from the dataset
+    #   - parses the markdown files
+    #   - fills the failed images list
+    #   - generates both reports with the updated data from the compiled/parsed files
+    # If during this process any error comes up, the process is stopped and exited with an error log
     def compile(self) -> None:
         try:
             dataset = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', DATASET))
@@ -64,6 +78,7 @@ class ContentCompiler:
             logging.error(f"Error during compilation: {str(e)}", exc_info=True)
             raise
 
+# Main process that initiates the compilling process. This function gets called when the commando is run to compile
 def main() -> None:
     parser = argparse.ArgumentParser(description="Compile content script.")
     parser.add_argument('--skip-link-check', required=False, action='store_true', help='Skip link check in markdown files.')

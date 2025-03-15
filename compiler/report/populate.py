@@ -1,14 +1,14 @@
 from config import dataset, taxcoReport, contentReport
 from config import TC1_COL, TC2_COL, TC3_COL, PROCES_COL, PROCESSTAP_COL, NOT_NECESSARY_ICON, LT_COL, DT_COL, OI_COL, PI_COL, LT, DT, OI, PI
 
-
+# Populates the taxco report with the data from the dataset 
+# Every tc1 code is the unique identifier
 def populateTaxcoReport():
-    """
-    Fills the taxco report with the data from the dataset.
-    Every TC1 code is the unique identifier.
-    """
     global taxcoReport
 
+    # Check for all rows in the dataset and extract the values
+    # If the tc1 is already in the taxcoReport, it will update the values
+    # Else it will make a new entry of the tc1 and details
     for row in dataset:
         tc1 = row[TC1_COL]
         tc2 = row[TC2_COL]
@@ -20,36 +20,35 @@ def populateTaxcoReport():
         else:
             addNewTaxcoReportEntry(tc1, tc2, proces, processtap)
 
+# Updates an existing row in the taxco report
 def updateTaxcoReport(tc1, tc2):
-    """
-    Updates an existing entry in the taxco report.
-    """
+    # Split the HBO-i niveaus up in a list
     splittedTc2 = tc2.split(',')
+    # Loop over the range of the niveaus (1-3)
     for index in range(1, 3):
-        if taxcoReport[tc1]['TC2'][index] == '🏳️' and splittedTc2[index] != '🏳️':
+        # If the existing entry has a not necessary icon and the new value does not have it, it needs to be updated with the new value
+        if taxcoReport[tc1]['TC2'][index] == NOT_NECESSARY_ICON and splittedTc2[index] != NOT_NECESSARY_ICON:
             taxcoReport[tc1]['TC2'][index] = splittedTc2[index]
 
+# Adds a new row entry to the taxco report
 def addNewTaxcoReportEntry(tc1, tc2, proces, processtap):
-    """
-    Adds a new entry to the taxco report.
-    """
+    # Split the HBO-i niveaus up in a list
     splittedTc2 = tc2.split(',')
+    # Fill the report with a new row with the tc1 as key and the proces, processtap and tc2 as values
     taxcoReport[tc1] = {
         "Proces": proces,
         "Processtap": processtap,
+        # If the dataset contained an X, it should give it the NOT_NECESSARY_ICON, otherwise just a small x, which means content is needed for that HBO-i niveau
         'TC2': [NOT_NECESSARY_ICON if splittedTc2[0] == 'X' else 'x', NOT_NECESSARY_ICON if splittedTc2[1] == 'X' else 'x', NOT_NECESSARY_ICON if splittedTc2[2] == 'X' else 'x']
     }
 
-
+# Fills the content  report with data from the dataset
+# Every combination of tc3 and tc1 are the unique combination for the content report
 def populateContentReport():
-    """
-    Fills the Report 2 data with the data from the dataset.
-    Every unique TC3 and TC1 combination will be added to the Report 2 data.
-    """
     global contentReport
 
+    # Check for all rows in the dataset and extract the values
     for row in dataset:
-        # Extract relevant columns from the dataset row
         tc1 = row[TC1_COL]
         tc2 = row[TC2_COL]
         tc3 = row[TC3_COL]
@@ -58,11 +57,12 @@ def populateContentReport():
         pi = row[PI_COL]
         dt = row[DT_COL]
 
-        # Initialize a new entry for TC3 if it doesn't exist
+        # Initialize a new entry for tc3 if it doesn't exist
         if tc3 not in contentReport:
             contentReport[tc3] = {}
 
-        # Add a new entry for TC1 under the current TC3 if it doesn't exist
+        # Add a new entry for tc1 under the current tc3 if it doesn't exist
+        # In this list, the tc2 and all the 4C/ID components will be added as values
         if tc1 not in contentReport[tc3]:
             contentReport[tc3][tc1] = {
                 'TC2': processColumn(tc2),
@@ -72,8 +72,7 @@ def populateContentReport():
                 DT: processColumn(dt),
             }
 
+# Processes a column of data, splitting it by commas and replacing 'X' with NOT_NECESSARY_ICON.
 def processColumn(columnData):
-    """
-    Processes a column of data, splitting it by commas and replacing 'X' with NOT_NECESSARY_ICON.
-    """
+    # If the dataset contained an X, it should give it the NOT_NECESSARY_ICON, otherwise just a small x, which means content is needed for that HBO-i niveau
     return [NOT_NECESSARY_ICON if val == 'X' else 'x' for val in columnData.split(',')]
